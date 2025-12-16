@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withX402 } from "x402-next";
-import { prisma } from "@/lib/prisma";
 import { getAstroProfile } from "@/lib/astro";
 import { pickWeightedRandom } from "@/lib/selection";
+import { answers, astroHints, type AnswerData, type AstroHintData } from "@/lib/data";
 
 const profileSchema = z.object({
   name: z.string().min(1),
@@ -69,35 +69,38 @@ async function handler(request: NextRequest) {
     const astroProfile = getAstroProfile({ birthDate: profile.birthDate });
     const { sessionId, headers } = getOrCreateSessionId(request);
 
-    const now = new Date();
-    const since = new Date(now.getTime() - ONE_DAY_MS);
+    // 使用内存数据而不是数据库（SQLite 在 Vercel 上无法工作）
+    // TODO: 迁移到 PostgreSQL 以获得完整的数据库功能
+    
+    // 简单的 24 小时去重：从 cookie 中读取已使用的答案 ID
+    const cookieHeader = request.headers.get("cookie") ?? "";
+    const usedAnswerIdsCookie = cookieHeader
+      .split(";")
+      .find((c) => c.trim().startsWith("ab_used_answers="))
+      ?.split("=")[1];
+    
+    const usedAnswerIds = usedAnswerIdsCookie
+      ? JSON.parse(decodeURIComponent(usedAnswerIdsCookie))
+      : [];
 
-    const recentSessionAnswers = await prisma.sessionAnswer.findMany({
-      where: {
-        sessionId,
-        createdAt: { gte: since },
-      },
-      select: { answerId: true },
+    // 过滤答案：按分类和已使用的 ID
+    let candidates = answers.filter((a) => {
+      if (category && category !== "random" && a.tags !== category) {
+        return false;
+      }
+      if (usedAnswerIds.includes(a.id)) {
+        return false;
+      }
+      return true;
     });
 
-    const usedAnswerIds = recentSessionAnswers.map((s) => s.answerId);
-
-    const baseWhere: { tags?: { contains: string } } = {};
-    if (category && category !== "random") {
-      baseWhere.tags = { contains: category };
-    }
-
-    let candidates = await prisma.answer.findMany({
-      where: {
-        ...baseWhere,
-        id: usedAnswerIds.length ? { notIn: usedAnswerIds } : undefined,
-      },
-    });
-
-    // If everything was filtered out by 24h rule, fall back to full pool.
+    // 如果所有答案都被过滤掉了，重置已使用的列表
     if (!candidates.length) {
-      candidates = await prisma.answer.findMany({
-        where: baseWhere,
+      candidates = answers.filter((a) => {
+        if (category && category !== "random" && a.tags !== category) {
+          return false;
+        }
+        return true;
       });
     }
 
@@ -116,22 +119,23 @@ async function handler(request: NextRequest) {
       );
     }
 
-    const hintCandidates = await prisma.astroHint.findMany({
-      where: {
-        zodiacSign: astroProfile.sun,
-        category: category && category !== "random" ? category : undefined,
-      },
+    // 选择星座提示
+    const hintCandidates = astroHints.filter((h) => {
+      if (h.zodiacSign !== astroProfile.sun) return false;
+      if (category && category !== "random" && h.category !== category) {
+        return false;
+      }
+      return true;
     });
 
-    const hint = pickWeightedRandom(hintCandidates ?? []);
+    const hint = pickWeightedRandom(hintCandidates.length > 0 ? hintCandidates : astroHints.filter((h) => h.zodiacSign === astroProfile.sun));
 
-    await prisma.sessionAnswer.create({
-      data: {
-        sessionId,
-        answerId: answer.id,
-        zodiacSign: astroProfile.sun,
-      },
-    });
+    // 更新已使用的答案 ID（存储在 cookie 中，24 小时过期）
+    const newUsedIds = [...usedAnswerIds, answer.id].slice(-10); // 只保留最近 10 个
+    headers.append(
+      "Set-Cookie",
+      `ab_used_answers=${encodeURIComponent(JSON.stringify(newUsedIds))}; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Lax; HttpOnly`,
+    );
 
     const txRef =
       request.headers.get("x-402-payment-reference") ??
