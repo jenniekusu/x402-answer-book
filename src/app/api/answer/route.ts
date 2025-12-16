@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { withX402 } from "x402-next";
 import { prisma } from "@/lib/prisma";
 import { getAstroProfile } from "@/lib/astro";
 import { pickWeightedRandom } from "@/lib/selection";
@@ -53,7 +54,7 @@ function getOrCreateSessionId(request: NextRequest): {
   return { sessionId, headers };
 }
 
-export async function POST(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
     const json = await request.json();
     const parsed = bodySchema.safeParse(json);
@@ -158,5 +159,33 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// x402 支付配置
+const payTo = process.env.PAY_TO_ADDRESS as `0x${string}` | undefined;
+const facilitatorUrl = process.env.X402_FACILITATOR_URL as
+  | `http://${string}`
+  | `https://${string}`
+  | undefined;
+const price = process.env.PRICE ?? "0.5";
+const network = process.env.CHAIN_ID === "base" ? "base" : "base-sepolia";
+
+// 如果配置了 x402，使用 withX402 wrapper；否则直接导出 handler
+export const POST =
+  payTo && facilitatorUrl
+    ? withX402(
+        handler,
+        payTo,
+        {
+          price: `$${price}`,
+          network,
+          config: {
+            description: "Answer Book paid answer",
+          },
+        },
+        {
+          url: facilitatorUrl,
+        },
+      )
+    : handler;
 
 
