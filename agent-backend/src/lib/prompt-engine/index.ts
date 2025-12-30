@@ -1,8 +1,8 @@
 /**
- * Prompt Engine - 提示词模板引擎
+ * Prompt Engine - prompt template toolkit
  *
- * 提供模板管理、变量替换和效果评估功能
+ * Provides template management, variable substitution, and evaluation helpers
  */
 
-// 导出所有类型定义
+// Re-export all type definitions
 export * from "./types";

@@ -24,9 +24,8 @@ describe("pickWeightedRandom", () => {
       if (picked?.value === "high") highCount++;
     }
 
-    // 在大致随机的情况下，高权重项应明显更常被选中
+    // With a sufficiently random distribution, high-weight items should appear more often
     expect(highCount).toBeGreaterThan(runs / 2);
   });
 });
-
 

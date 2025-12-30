@@ -1,16 +1,16 @@
 import { z } from "zod";
 
 // ============================================================================
-// Variable Types - 变量类型定义
+// Variable Types
 // ============================================================================
 
 /**
- * 支持的变量类型
- * - text: 单行文本
- * - number: 数字
- * - select: 单选（从预定义选项中选择）
- * - multiline: 多行文本
- * - json: JSON 对象
+ * Supported variable types
+ * - text: single-line text
+ * - number: numeric value
+ * - select: pick from predefined options
+ * - multiline: multi-line text area
+ * - json: JSON object payload
  */
 export const VariableTypeSchema = z.enum([
   "text",
@@ -23,65 +23,63 @@ export const VariableTypeSchema = z.enum([
 export type VariableType = z.infer<typeof VariableTypeSchema>;
 
 // ============================================================================
-// Variable - 变量定义
+// Variable Definition
 // ============================================================================
 
 /**
- * 变量定义 Schema
- * 用于定义模板中的占位符变量
+ * Schema for variables used inside templates
  */
 export const VariableSchema = z.object({
-  /** 变量名称，用于模板中的占位符 {{name}} */
-  name: z.string().min(1, "变量名不能为空"),
-  /** 变量类型 */
+  /** Variable name, reflected as {{name}} in templates */
+  name: z.string().min(1, "Name is required"),
+  /** Variable type */
   type: VariableTypeSchema,
-  /** 默认值 */
+  /** Default value */
   defaultValue: z.union([z.string(), z.number()]).optional(),
-  /** 变量描述，用于 UI 提示 */
+  /** Description, helpful for UI hints */
   description: z.string().optional(),
-  /** 是否必填 */
+  /** Whether this variable is required */
   required: z.boolean().default(true),
-  /** select 类型的选项列表 */
+  /** Options for select-type variables */
   options: z.array(z.string()).optional(),
 });
 
 export type Variable = z.infer<typeof VariableSchema>;
 
 // ============================================================================
-// PromptTemplate - 提示词模板
+// Prompt Templates
 // ============================================================================
 
 /**
- * 提示词模板 Schema
- * 模板的完整定义，包含内容和变量
+ * Schema describing a complete prompt template plus its metadata
  */
 export const PromptTemplateSchema = z.object({
-  /** 唯一标识符 */
-  id: z.string().min(1, "模板 ID 不能为空"),
-  /** 模板名称 */
-  name: z.string().min(1, "模板名称不能为空"),
-  /** 模板描述 */
+  /** Unique identifier */
+  id: z.string().min(1, "Template ID is required"),
+  /** Template name */
+  name: z.string().min(1, "Template name is required"),
+  /** Template description */
   description: z.string().optional(),
-  /** 模板内容，包含 {{variable}} 占位符 */
-  content: z.string().min(1, "模板内容不能为空"),
-  /** 变量定义列表 */
+  /** Template body containing {{variable}} placeholders */
+  content: z.string().min(1, "Template content is required"),
+  /** List of variable definitions */
   variables: z.array(VariableSchema).default([]),
-  /** 标签，用于分类和搜索 */
+  /** Tags for categorization and search */
   tags: z.array(z.string()).default([]),
-  /** 当前版本号 */
+  /** Current version number */
   version: z.number().int().positive().default(1),
-  /** 创建时间 */
+  /** Created timestamp */
   createdAt: z.string().datetime(),
-  /** 更新时间 */
+  /** Updated timestamp */
   updatedAt: z.string().datetime(),
-  /** 是否已删除（软删除） */
+  /** Soft-delete flag */
   deleted: z.boolean().default(false),
 });
 
 export type PromptTemplate = z.infer<typeof PromptTemplateSchema>;
 
 /**
- * 创建模板时的输入 Schema（不需要 id、时间戳等自动生成的字段）
+ * Input schema for creating a template (omits auto-generated fields)
  */
 export const CreateTemplateInputSchema = PromptTemplateSchema.omit({
   id: true,
@@ -94,67 +92,65 @@ export const CreateTemplateInputSchema = PromptTemplateSchema.omit({
 export type CreateTemplateInput = z.infer<typeof CreateTemplateInputSchema>;
 
 /**
- * 更新模板时的输入 Schema（所有字段可选）
+ * Input schema for updating a template (all fields optional)
  */
 export const UpdateTemplateInputSchema = CreateTemplateInputSchema.partial();
 
 export type UpdateTemplateInput = z.infer<typeof UpdateTemplateInputSchema>;
 
 // ============================================================================
-// TemplateVersion - 版本记录
+// Template Versions
 // ============================================================================
 
 /**
- * 模板版本记录 Schema
- * 用于追踪模板的历史版本
+ * Schema representing a historical version of a template
  */
 export const TemplateVersionSchema = z.object({
-  /** 关联的模板 ID */
+  /** Associated template ID */
   templateId: z.string().min(1),
-  /** 版本号 */
+  /** Version number */
   version: z.number().int().positive(),
-  /** 该版本的模板内容 */
+  /** Template content for this version */
   content: z.string(),
-  /** 该版本的变量定义 */
+  /** Variable definitions used by this version */
   variables: z.array(VariableSchema).default([]),
-  /** 变更说明 */
+  /** Changelog / description of changes */
   changelog: z.string().optional(),
-  /** 创建时间 */
+  /** Creation timestamp */
   createdAt: z.string().datetime(),
 });
 
 export type TemplateVersion = z.infer<typeof TemplateVersionSchema>;
 
 // ============================================================================
-// EvaluationResult - 评估结果
+// Evaluation Results
 // ============================================================================
 
 /**
- * 评估结果 Schema
- * 记录模板使用后的效果评估
+ * Schema describing the outcome of evaluating a template
  */
 export const EvaluationResultSchema = z.object({
-  /** 唯一标识符 */
+  /** Unique identifier */
   id: z.string().min(1),
-  /** 关联的模板 ID */
+  /** Associated template ID */
   templateId: z.string().min(1),
-  /** 使用的模板版本 */
+  /** Template version used */
   templateVersion: z.number().int().positive(),
-  /** 输入的变量值 */
+  /** Variable inputs that were rendered */
   input: z.record(z.string(), z.unknown()),
-  /** 渲染后的完整提示词 */
+  /** Fully rendered prompt */
   renderedPrompt: z.string(),
-  /** LLM 输出结果 */
+  /** LLM response */
   output: z.string(),
-  /** 评分 (1-5) */
+  /** Score (1-5) */
   score: z.number().int().min(1).max(5),
-  /** 文字反馈 */
+  /** Written feedback */
   feedback: z.string().optional(),
-  /** 评估时间 */
+  /** Evaluation timestamp */
   timestamp: z.string().datetime(),
-  /** 使用的 LLM 模型 */
+  /** LLM model identifier */
   model: z.string().optional(),
-  /** Token 使用量 */
+  /** Token usage */
   tokenUsage: z
     .object({
       promptTokens: z.number().optional(),
@@ -167,7 +163,7 @@ export const EvaluationResultSchema = z.object({
 export type EvaluationResult = z.infer<typeof EvaluationResultSchema>;
 
 /**
- * 创建评估结果的输入 Schema
+ * Input schema for creating evaluation results
  */
 export const CreateEvaluationInputSchema = EvaluationResultSchema.omit({
   id: true,
@@ -177,87 +173,86 @@ export const CreateEvaluationInputSchema = EvaluationResultSchema.omit({
 export type CreateEvaluationInput = z.infer<typeof CreateEvaluationInputSchema>;
 
 // ============================================================================
-// TemplateIndex - 模板索引
+// Template Index
 // ============================================================================
 
 /**
- * 模板索引项 Schema
- * 用于快速检索模板，不包含完整内容
+ * Schema for lightweight template index entries
  */
 export const TemplateIndexItemSchema = z.object({
-  /** 模板 ID */
+  /** Template ID */
   id: z.string(),
-  /** 模板名称 */
+  /** Template name */
   name: z.string(),
-  /** 模板描述 */
+  /** Template description */
   description: z.string().optional(),
-  /** 标签 */
+  /** Tags */
   tags: z.array(z.string()),
-  /** 当前版本 */
+  /** Current version */
   version: z.number(),
-  /** 更新时间 */
+  /** Last update timestamp */
   updatedAt: z.string(),
-  /** 是否已删除 */
+  /** Soft-delete flag */
   deleted: z.boolean(),
 });
 
 export type TemplateIndexItem = z.infer<typeof TemplateIndexItemSchema>;
 
 /**
- * 模板索引文件 Schema
+ * Schema for the template index file
  */
 export const TemplateIndexSchema = z.object({
-  /** 索引版本 */
+  /** Index version */
   version: z.number().default(1),
-  /** 最后更新时间 */
+  /** Last updated timestamp */
   lastUpdated: z.string().datetime(),
-  /** 模板列表 */
+  /** Templates included in the index */
   templates: z.array(TemplateIndexItemSchema),
 });
 
 export type TemplateIndex = z.infer<typeof TemplateIndexSchema>;
 
 // ============================================================================
-// Render Context - 渲染上下文
+// Render Context
 // ============================================================================
 
 /**
- * 变量值映射
+ * Mapping of variable names to concrete values
  */
 export type VariableValues = Record<string, string | number | unknown>;
 
 /**
- * 渲染选项
+ * Rendering options
  */
 export interface RenderOptions {
-  /** 是否严格模式（未提供必填变量时抛出错误） */
+  /** When true, missing required variables throw an error */
   strict?: boolean;
-  /** 未找到变量时的默认值 */
+  /** Default fallback when a variable is missing */
   fallbackValue?: string;
 }
 
 /**
- * 渲染结果
+ * Result of rendering a template
  */
 export interface RenderResult {
-  /** 渲染后的内容 */
+  /** Rendered content */
   content: string;
-  /** 使用的变量 */
+  /** Variables that were supplied */
   usedVariables: string[];
-  /** 缺失的变量 */
+  /** Variables that were missing */
   missingVariables: string[];
-  /** 是否成功 */
+  /** Whether rendering succeeded */
   success: boolean;
-  /** 错误信息 */
+  /** Error message when unsuccessful */
   error?: string;
 }
 
 // ============================================================================
-// API Response Types - API 响应类型
+// API Response Types
 // ============================================================================
 
 /**
- * 模板列表响应
+ * Response payload returned by a template list call
  */
 export const TemplateListResponseSchema = z.object({
   templates: z.array(TemplateIndexItemSchema),
@@ -267,7 +262,7 @@ export const TemplateListResponseSchema = z.object({
 export type TemplateListResponse = z.infer<typeof TemplateListResponseSchema>;
 
 /**
- * 模板渲染请求
+ * Template render request shape
  */
 export const RenderRequestSchema = z.object({
   templateId: z.string(),
@@ -283,7 +278,7 @@ export const RenderRequestSchema = z.object({
 export type RenderRequest = z.infer<typeof RenderRequestSchema>;
 
 /**
- * 模板渲染响应
+ * Template render response shape
  */
 export const RenderResponseSchema = z.object({
   content: z.string(),

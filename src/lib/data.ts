@@ -67,7 +67,7 @@ export const astroHints: AstroHintData[] = [
   { id: 102, zodiacSign: "Leo", category: "career", text: "In career, your own rhythm is more trustworthy than outside pressure. As Leo, your intuition is especially trustworthy right now.", weight: 2 },
   { id: 103, zodiacSign: "Leo", category: "money", text: "With money and resources, you're slowly creating healthier boundaries. As Leo, your intuition is especially trustworthy right now.", weight: 2 },
   
-  // 其他星座的通用提示
+  // General hints for the remaining signs
   { id: 201, zodiacSign: "Taurus", category: "love", text: "In love, you're learning to express your true needs more gently. As Taurus, your intuition is especially trustworthy right now.", weight: 2 },
   { id: 202, zodiacSign: "Gemini", category: "career", text: "In career, your own rhythm is more trustworthy than outside pressure. As Gemini, your intuition is especially trustworthy right now.", weight: 2 },
   { id: 203, zodiacSign: "Cancer", category: "health", text: "For your mind and body, small daily adjustments create lasting echoes. As Cancer, your intuition is especially trustworthy right now.", weight: 2 },
@@ -79,4 +79,3 @@ export const astroHints: AstroHintData[] = [
   { id: 209, zodiacSign: "Aquarius", category: "relationships", text: "In relationships, your sincerity draws like-minded people close. As Aquarius, your intuition is especially trustworthy right now.", weight: 2 },
   { id: 210, zodiacSign: "Pisces", category: "love", text: "In love, you're learning to express your true needs more gently. As Pisces, your intuition is especially trustworthy right now.", weight: 2 },
 ];
-

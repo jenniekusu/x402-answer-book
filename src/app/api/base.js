@@ -2,7 +2,7 @@ import axios from 'axios'
 import { refreshTokenApi } from './userApi'
 import { showToast } from '@/components/'
 
-// ✅ 创建请求实例
+// Create the axios request instances
 const defaultRequest = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   timeout: 60000000,
@@ -23,10 +23,10 @@ const spiderRequest = axios.create({
   }
 })
 
-// ✅ 请求拦截器
+// Configure interceptors
 const setupInterceptors = (request) => {
   request.interceptors.request.use((config) => {
-    // 检查是否在浏览器环境中
+    // Check if we are running in the browser
     const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
@@ -53,7 +53,7 @@ const setupInterceptors = (request) => {
       if (response.data.error === 'Unauthorized') {
         const originalRequest = response.config
 
-        // 记录重试次数（每次请求最大重试 3 次）
+        // Track retry attempts (maximum three per request)
         originalRequest._retryCount = originalRequest._retryCount || 0
 
         if (originalRequest._retryCount >= 3) {
@@ -86,7 +86,7 @@ const setupInterceptors = (request) => {
             processQueue(err, null)
             isRefreshing = false
 
-            // ❗ 清除 token，提示重新登录
+            // Clear tokens and require the user to log in again
             if (typeof window !== 'undefined') {
               localStorage.removeItem('token')
               localStorage.removeItem('refresh_token')
@@ -128,7 +128,7 @@ const setupInterceptors = (request) => {
 setupInterceptors(defaultRequest)
 setupInterceptors(spiderRequest)
 
-// ✅ 通用请求方法
+// Generic request helpers
 export const get = (url, params = {}, useSpider = false) => {
   const request = useSpider ? spiderRequest : defaultRequest
   return request({
@@ -243,4 +243,3 @@ export const streamPost = async (url, data = {}, onMessage, useSpider = false) =
     throw err
   }
 }
-

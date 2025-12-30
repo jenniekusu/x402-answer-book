@@ -31,11 +31,11 @@ export default function AskPage() {
     setError(null);
 
     if (!question.trim()) {
-      setError("请先在心里清晰地说出你的问题，并简单写在这里。");
+      setError("Please take a moment to articulate your question clearly and jot it down here.");
       return;
     }
     if (question.length > 200) {
-      setError("问题请控制在 200 字以内。");
+      setError("Please keep the question within 200 characters.");
       return;
     }
 

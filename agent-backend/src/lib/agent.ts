@@ -16,11 +16,11 @@ import { identity, identityFromEnv } from "@lucid-agents/identity";
 /**
  * ERC-8004 Identity Configuration
  *
- * 配置环境变量：
- * - AGENT_DOMAIN: 你的 Agent 域名
- * - CHAIN_ID: 链 ID（Base 主网: 8453）
- * - RPC_URL: 区块链 RPC 端点
- * - REGISTER_IDENTITY: 是否自动注册（true/false）
+ * Configure via environment variables:
+ * - AGENT_DOMAIN: agent domain
+ * - CHAIN_ID: chain ID (Base mainnet: 8453)
+ * - RPC_URL: blockchain RPC endpoint
+ * - REGISTER_IDENTITY: auto-register flag (true/false)
  */
 const identityConfig = identityFromEnv();
 
@@ -34,12 +34,12 @@ const agentBuilder = createAgent({
   description:
     process.env.AGENT_DESCRIPTION ??
     "The Book of Answers - A mystical AI oracle that offers philosophical wisdom to illuminate your questions",
-  // Open Graph 标签，用于社交分享和 x402scan 发现
+  // Open Graph metadata for social sharing and x402scan discovery
   image: process.env.AGENT_IMAGE,
   url: process.env.AGENT_URL,
 }).use(http());
 
-// 添加支付功能（如果配置了完整的支付环境变量）
+// Add the payments capability when the required env vars exist
 const paymentsConfig = paymentsFromEnv();
 const hasRequiredPaymentsConfig =
   process.env.FACILITATOR_URL &&
@@ -57,7 +57,7 @@ if (paymentsConfig && hasRequiredPaymentsConfig) {
   );
 }
 
-// 添加 ERC-8004 身份认证
+// Attach ERC-8004 identity attestation
 agentBuilder.use(identity({ config: identityConfig }));
 
 const agent = await agentBuilder.build();
@@ -68,14 +68,14 @@ const agent = await agentBuilder.build();
 
 const LLM_MODEL = process.env.LLM_MODEL ?? "gpt-4o-mini";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL; // 可选，支持自定义 API 端点
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL; // Optional custom API endpoint
 
 let openai: OpenAI | null = null;
 
 if (OPENAI_API_KEY) {
   openai = new OpenAI({
     apiKey: OPENAI_API_KEY,
-    baseURL: OPENAI_BASE_URL, // 如果设置了自定义端点，会使用它
+    baseURL: OPENAI_BASE_URL, // Use the custom endpoint when provided
   });
   console.log(
     `[answer-book] OpenAI client configured with model: ${LLM_MODEL}`,
@@ -234,7 +234,7 @@ app.get("/images/:filename", async (c) => {
 });
 
 // ============================================================================
-// Answer Book - 预设的神秘回答（当 LLM 不可用时使用）
+// Answer Book - Preset mystical answers used when the LLM is unavailable
 // ============================================================================
 
 const mysticalAnswers = [
@@ -339,18 +339,18 @@ const ZODIAC_SIGNS = [
 ];
 
 const ZODIAC_CN: Record<string, string> = {
-  Aries: "白羊座",
-  Taurus: "金牛座",
-  Gemini: "双子座",
-  Cancer: "巨蟹座",
-  Leo: "狮子座",
-  Virgo: "处女座",
-  Libra: "天秤座",
-  Scorpio: "天蝎座",
-  Sagittarius: "射手座",
-  Capricorn: "摩羯座",
-  Aquarius: "水瓶座",
-  Pisces: "双鱼座",
+  Aries: "Aries",
+  Taurus: "Taurus",
+  Gemini: "Gemini",
+  Cancer: "Cancer",
+  Leo: "Leo",
+  Virgo: "Virgo",
+  Libra: "Libra",
+  Scorpio: "Scorpio",
+  Sagittarius: "Sagittarius",
+  Capricorn: "Capricorn",
+  Aquarius: "Aquarius",
+  Pisces: "Pisces",
 };
 
 function getSunSign(birthDate: string): string {
@@ -380,7 +380,7 @@ const CATEGORY_PROMPTS: Record<string, string> = {
 };
 
 // ============================================================================
-// Entrypoint: consult - 主要占卜 API (Jennie Demo 格式)
+// Entrypoint: consult - Primary divination API (Jennie demo format)
 // ============================================================================
 
 const consultInputSchema = z.object({
@@ -418,7 +418,7 @@ addEntrypoint({
     const input = ctx.input as z.infer<typeof consultInputSchema>;
     const { profile, question, category = "general" } = input;
 
-    // 计算星座
+    // Compute the user's sun sign
     const sunSign = getSunSign(profile.birthDate);
     const sunSignCN = ZODIAC_CN[sunSign] || sunSign;
     const categoryDesc = CATEGORY_PROMPTS[category] || CATEGORY_PROMPTS.general;
@@ -467,7 +467,7 @@ Return only the JSON, with no additional content. Maintain a mystical, poetic, a
         if (parsed.answer) answer = parsed.answer;
         if (parsed.astroHint) astroHint = parsed.astroHint;
       } catch {
-        // 如果 JSON 解析失败，使用 LLM 原始输出作为 answer
+        // If JSON parsing fails, fall back to the raw LLM output for the answer
         if (result.text && result.text.length > 10) {
           answer = result.text.slice(0, 100);
         }
@@ -479,7 +479,7 @@ Return only the JSON, with no additional content. Maintain a mystical, poetic, a
         answer,
         astroHint,
         cost: CONSULT_PRICE,
-        txRef: null, // 交易引用，由支付层处理
+        txRef: null, // Transaction reference handled by the payment layer
         sunSign,
         disclaimer:
           "For self-reflection and entertainment purposes only. This does not constitute professional advice.",
@@ -503,7 +503,7 @@ addEntrypoint({
     const input = ctx.input as z.infer<typeof consultInputSchema>;
     const { profile, question, category = "general" } = input;
 
-    // 计算星座
+    // Compute the user's sun sign
     const sunSign = getSunSign(profile.birthDate);
     const sunSignCN = ZODIAC_CN[sunSign] || sunSign;
     const categoryDesc = CATEGORY_PROMPTS[category] || CATEGORY_PROMPTS.general;
@@ -713,12 +713,12 @@ Your words should feel mysterious and profound, inviting deeper contemplation.`;
 });
 
 // ============================================================================
-// Entrypoint: fortune - 获取今日运势
+// Entrypoint: fortune - Fetch today's horoscope
 // ============================================================================
 
 const fortuneInputSchema = z.object({
   name: z.string().optional(),
-  birthDate: z.string().optional(), // YYYY-MM-DD 格式
+  birthDate: z.string().optional(), // YYYY-MM-DD format
 });
 
 const fortuneOutputSchema = z.object({
@@ -815,7 +815,7 @@ Return only the JSON, nothing else.`;
 });
 
 // ============================================================================
-// Entrypoint: ask-stream - 流式响应版本
+// Entrypoint: ask-stream - Streaming response variant
 // ============================================================================
 
 addEntrypoint({
@@ -918,7 +918,7 @@ Your response should echo the voice of an ancient oracle, filled with wisdom and
 });
 
 // ============================================================================
-// Entrypoint: echo - 测试端点
+// Entrypoint: echo - Test endpoint
 // ============================================================================
 
 addEntrypoint({
@@ -938,11 +938,11 @@ addEntrypoint({
 });
 
 // ============================================================================
-// API: GET /share - Twitter 分享 HTML 模板接口
+// API: GET /share - Twitter share HTML template endpoint
 // ============================================================================
 
 /**
- * HTML 转义函数，防止 XSS 攻击
+ * HTML escape helper to prevent XSS
  */
 function escapeHtml(text: string): string {
   const htmlEscapes: Record<string, string> = {
@@ -956,9 +956,9 @@ function escapeHtml(text: string): string {
 }
 
 /**
- * 解析 meta 参数数组
- * 格式: "key1,value1,key2,value2,..."
- * 返回: { "key1": "value1", "key2": "value2", ... }
+ * Parse an array of meta parameters
+ * Format: "key1,value1,key2,value2,..."
+ * Returns: { "key1": "value1", "key2": "value2", ... }
  */
 function parseMetaArray(metaArray: string[]): Record<string, string> {
   const result: Record<string, string> = {};
@@ -973,7 +973,7 @@ function parseMetaArray(metaArray: string[]): Record<string, string> {
 }
 
 /**
- * 根据 meta 参数生成 HTML 模板
+ * Generate the HTML template based on meta parameters
  */
 function generateShareHtml(meta: Record<string, string>): string {
   const title = escapeHtml(meta["twitter:title"] || "Answer Book");
@@ -1018,16 +1018,16 @@ app.get("/share", async (c) => {
   }
 
   try {
-    // 解码 meta 参数（可能是双重编码）
+    // Decode the meta parameter (it may be double-encoded)
     let decodedMeta = decodeURIComponent(metaParam);
-    // 尝试再次解码（处理双重编码的情况）
+    // Try decoding again in case it was encoded twice
     try {
       decodedMeta = decodeURIComponent(decodedMeta);
     } catch {
-      // 如果第二次解码失败，使用第一次解码的结果
+      // If the second decode fails, keep the once-decoded value
     }
 
-    // 解析为数组
+    // Convert into an array
     const metaArray = decodedMeta.split(",");
     const meta = parseMetaArray(metaArray);
 

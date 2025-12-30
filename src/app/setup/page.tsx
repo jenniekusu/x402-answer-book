@@ -123,7 +123,7 @@ export default function SetupPage() {
                       </>
                     }
                     required
-                    value={form.gender as any} // 如果 Profile.gender 是 string，建议改成 union；先这样也能跑
+                    value={form.gender as any} // If Profile.gender stays string-based, tighten the type to a union later; this keeps it working for now
                     onChange={(v) => handleChange("gender", v)}
                     error={showErrors && !form.gender}
                   />
