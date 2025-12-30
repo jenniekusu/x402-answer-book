@@ -1,26 +1,39 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-noto-serif);
+  --font-mono: var(--font-noto-serif);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
+  background-color: #140c0a;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-noto-serif), "Noto Serif", serif;
+  background-image: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(0, 0, 0, 0) 100%
+    ),
+    url("../assets/images/bg.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.bd1 {
+  border: 1px solid red !important;
+}
+.bd2 {
+  border: 1px solid blue !important;
+}
+.font-hangyaku {
+  font-family: var(--font-hangyaku), "Hangyaku", serif;
+}
+.font-inter {
+  font-family: var(--font-inter), "Inter", sans-serif;
 }

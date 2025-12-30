@@ -2,7 +2,7 @@ export type Profile = {
   name: string;
   birthDate: string;
   birthTime?: string | null;
-  gender?: string | null;
+  gender: string;
   birthPlace: string;
 };
 

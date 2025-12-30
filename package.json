@@ -4,24 +4,26 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest",
-    "postinstall": "prisma generate",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "test": "vitest"
   },
   "dependencies": {
     "@coinbase/x402": "^2.0.0",
     "@prisma/client": "5.21.1",
+    "@rainbow-me/rainbowkit": "^2.2.10",
+    "@tanstack/react-query": "^5.90.12",
+    "dotenv": "^17.2.3",
+    "html2canvas": "^1.4.1",
     "next": "16.0.10",
     "prisma": "5.21.1",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "sqlite3": "^5.1.7",
+    "viem": "^2.43.3",
+    "wagmi": "2.19.5",
+    "x402": "^1.1.0",
     "x402-next": "^1.0.0",
     "zod": "^3.25.76"
   },
@@ -38,5 +40,10 @@
     "ts-node": "^10.9.2",
     "typescript": "^5",
     "vitest": "^4.0.16"
+  },
+  "overrides": {
+    "wagmi": "2.19.5",
+    "@wagmi/core": "2.22.1",
+    "@wagmi/connectors": "6.2.0"
   }
 }

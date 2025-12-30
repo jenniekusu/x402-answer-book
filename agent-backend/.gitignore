@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.bun/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+.tmp/
+.temp/
+.cache/
+
+# Editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Private keys (NEVER commit these!)
+*.pem
+*.key
+private*.json
+
+# Local data
+.data/
+.history/

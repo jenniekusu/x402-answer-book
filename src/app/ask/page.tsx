@@ -1,27 +1,22 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import {
-  QuestionPayload,
-  loadProfile,
-  saveQuestion,
-} from "@/lib/clientState";
-
-const CATEGORIES: QuestionPayload["category"][] = [
-  "love",
-  "career",
-  "money",
-  "health",
-  "relationships",
-  "random",
-];
+import { AnswerHeader } from "@/components/AnswerHeader";
+import { NextButton } from "@/components/NextButton";
+import { StepPillar } from "@/components/StepPillar";
+import { loadProfile, saveQuestion } from "@/lib/clientState";
+import boxFrame from "@/assets/images/box.png";
+import aBg from "@/assets/images/a-bg.png";
+import cBg from "@/assets/images/c-bg.png";
+import dBg from "@/assets/images/d-bg.png";
+import closeIcon from "@/assets/images/close.png";
 
 export default function AskPage() {
   const router = useRouter();
   const [question, setQuestion] = useState("");
-  const [category, setCategory] =
-    useState<QuestionPayload["category"]>("random");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,86 +39,116 @@ export default function AskPage() {
       return;
     }
 
-    saveQuestion({ question, category: category ?? "random" });
+    saveQuestion({ question, category: "random" });
     router.push("/result");
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-zinc-50">
-          现在，说出你的问题
-        </h2>
-        <p className="mt-1 text-xs text-zinc-400">
-          你可以描述一个具体的场景，也可以只写下一个关键词。
-          <br />
-          重要的是：在心里诚实地对自己说一句“我想知道……？”
-        </p>
+    <section className="relative flex min-h-screen flex-col items-center overflow-hidden px-4 py-16 text-[#fcebb8] ">
+      <div className="pointer-events-none absolute inset-0 backdrop-blur-2xl" />
+      <div className="relative z-10 flex w-full max-w-6xl flex-col items-center space-y-10 px-2 ">
+        <Link
+          href="/"
+          className="absolute right-2 top-2 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full transition sm:right-0 sm:top-0 sm:h-12 sm:w-12"
+          aria-label="Close"
+        >
+          <Image src={closeIcon} alt="" width={48} height={48} />
+        </Link>
+        <AnswerHeader />
+
+        <div className="flex w-full items-center justify-center ">
+          <div className="flex flex-col items-center  gap-8 lg:flex-row lg:items-stretch w-full lg:w-auto ">
+            <div className="hidden justify-center lg:flex">
+              <StepPillar
+                letter="A"
+                description="Fill in your info."
+                stepNumber="1"
+                background={aBg}
+                state="complete"
+              />
+            </div>
+
+            <div
+              className="h-auto w-full max-w-[480px] rounded-3xl p-6 sm:p-8"
+              style={{
+                backgroundImage: `url(${boxFrame.src})`,
+                backgroundSize: "100% 100%",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+              }}
+            >
+              <div className="">
+                <p className="text-[18px] font-black text-[#FFED95]">
+                  Now, ask your question.
+                </p>
+                <p className="text-[12px] text-white opacity-60 mt-2">
+                  You can describe a specific situation, or just write a
+                  keyword. What matters is being honest with yourself and
+                  thinking: "I want to know...?"
+                </p>
+                <p className="text-[14px]  text-[#FFED95] mt-6">
+                  Your question (up to 200 characters)
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="mt-3 ">
+                <div>
+                  <textarea
+                    className="min-h-[228px] rounded-[6px]  w-full resize-none  bg-[#292929] p-3 text-sm text-[#fff6d8] placeholder:text-white/40  focus:outline-none"
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    maxLength={200}
+                    placeholder="Please enter…"
+                  />
+                </div>
+
+                {/* {error ? (
+                  <p className="text-xs text-[#f7b9a0]">{error}</p>
+                ) : null} */}
+
+                <NextButton type="submit" />
+              </form>
+            </div>
+
+            <div className="hidden flex-wrap justify-center gap-4 lg:flex">
+              <StepPillar
+                letter="C"
+                description="Open this round's book of answers."
+                stepNumber="3"
+                background={cBg}
+              />
+              <StepPillar
+                letter="D"
+                description="Open this round's book of answers."
+                stepNumber="4"
+                background={dBg}
+              />
+            </div>
+
+            <div className="flex w-full gap-4 overflow-x-auto pb-2 lg:hidden">
+              <StepPillar
+                letter="A"
+                description="Fill in your info."
+                stepNumber="1"
+                background={aBg}
+                state="complete"
+              />
+              <StepPillar
+                letter="C"
+                description="Open this round's book of answers."
+                stepNumber="3"
+                background={cBg}
+              />
+              <StepPillar
+                letter="D"
+                description="Open this round's book of answers."
+                stepNumber="4"
+                background={dBg}
+              />
+            </div>
+          </div>
+        </div>
       </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <label className="block text-xs text-zinc-300">
-            你的问题（最多 200 字）
-          </label>
-          <textarea
-            className="min-h-[96px] w-full resize-none rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-2 text-sm text-zinc-100 outline-none ring-0 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/70"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            maxLength={200}
-            placeholder="此刻最在意的是什么？把它写下来……"
-          />
-          <div className="flex justify-between text-[11px] text-zinc-500">
-            <span>请尽量用你自己的语言，而不是“我要怎么做才会幸福”这类泛泛的问题。</span>
-            <span>
-              {question.length}
-              /200
-            </span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <span className="block text-xs text-zinc-300">可选分类</span>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c ?? "random"}
-                type="button"
-                onClick={() => setCategory(c)}
-                className={`inline-flex items-center rounded-full border px-3 py-1 text-xs transition ${
-                  category === c
-                    ? "border-purple-400/80 bg-purple-500/20 text-purple-100"
-                    : "border-zinc-700 bg-zinc-950/60 text-zinc-400 hover:border-zinc-500"
-                }`}
-              >
-                {c === "love" && "感情"}
-                {c === "career" && "事业"}
-                {c === "money" && "金钱"}
-                {c === "health" && "身心"}
-                {c === "relationships" && "人际"}
-                {c === "random" && "随缘"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {error && (
-          <p className="text-xs text-red-400">
-            {error}
-          </p>
-        )}
-
-        <div className="pt-2 flex justify-end">
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-sky-500 px-8 py-2.5 text-xs font-semibold tracking-wide text-white shadow-lg shadow-purple-900/40 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/80"
-          >
-            下一步：翻开答案书
-          </button>
-        </div>
-      </form>
-    </div>
+    </section>
   );
 }
-
-
