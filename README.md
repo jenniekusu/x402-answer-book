@@ -1,143 +1,85 @@
-## Answer Book
+# Answer Book
 
-“Answer Book” 是一个基于星座的小占卜 / 自我反思 Web 应用。用户：
+Answer Book is a mystical question ritual powered by x402: a fully client-side guided ceremony that lets users submit a burning question, pay a tiny onchain fee, and receive an AI-generated answer sourced from a Agent secured by ERC-8004 identity proofs. It mixes tarot-like storytelling with crypto-native payments so anyone on Base Sepolia (and Base mainnet soon) can “open” their personal book of answers.
 
-- 输入个人信息（姓名、出生信息，仅保存在会话中）
-- 提问一个问题
-- 点击 “翻开答案书” 按钮
-- 支付一次性费用后，获得一句简短的中文回答 + 一条轻量星象提示
+**Live app:** https://www.answerbook.app/
 
-本项目只用于 **自我反思与娱乐，不构成任何专业建议**。
+## Product Highlights
 
-技术栈：
+- **Guided ritual:** Users progress through setup → ask → result → share screens that capture the feel of visiting an oracle. Required fields (name, birth data, birthplace) are stored only in session storage, keeping the experience private.
+- **x402 micropayments:** Every reading costs 0.0001 USDC through x402 EXACT payments. The flow auto-detects the required chain, prompts RainbowKit/Wagmi to switch wallets, and retries with an `X-PAYMENT` header so the backend only serves answers after payment settles.
+- **ERC-8004 registered agent:** The Bun-based agent service announces an ERC-8004 identity (Agent domain + Chain ID + registration state). This lets explorers and wallets verify the oracle they are paying is an attested onchain agent.
+- **Share-ready artefacts:** The result view renders a printable/shareable card via `html2canvas`, provides an instant PNG download, and can upload the capture to the agent backend for Twitter/X sharing using the `/share` route (which emits custom OG tags for Twitterbot).
+- **Base-first UX:** Wagmi + RainbowKit target Base and Base Sepolia out of the box, defaulting to Sepolia for testing while remaining mainnet-ready. Instructions link to Circle’s faucet so users can top up USDC quickly.
 
-- **Next.js App Router + TypeScript**
-- **Tailwind CSS**
-- **Prisma + SQLite**
-- **Coinbase x402 v2**（基于 HTTP 402 的付费接口）
+## Architecture & Tech Stack
 
----
+| Layer | Key Tech | Notes |
+| --- | --- | --- |
+| Web client | Next.js 16 App Router, React 19, TailwindCSS | Pages live under `src/app` (`/setup`, `/ask`, `/result`, `/share`). UI primitives sit in `src/components`; shared logic lives in `src/lib`. |
+| Wallet & network | RainbowKit + Wagmi + WalletConnect, html2canvas | Provides wallet connect, chain switching, Base/Base-Sepolia support, and client-side capture for share cards. |
+| Payments | `x402` + `@coinbase/x402` | Uses `exact.evm.createPayment` to build the payment payload and `encodePayment` for the `X-PAYMENT` header that unlocks the answer. |
+| Agent backend | Bun, ERC-8004 identity middleware | `agent-backend/` exposes `/entrypoints/consult/invoke` plus helper endpoints (image upload, static hosting). Payments + identity config come from environment variables so the agent can register and receive funds. |
+| Data & state | Browser `sessionStorage`, optional Prisma/SQLite | Client state (`Profile`, `QuestionPayload`, `AnswerResult`) is persisted per-session to avoid storing PII on the server; Prisma is available for future persistence if needed. |
 
-## 目录结构（核心部分）
+### Flow Overview
 
-主要相关文件：
+1. **Setup (`/setup`)** — Collect birth details and cache them in session storage.
+2. **Ask (`/ask`)** — Capture a concise question, select category, and prepare the consult payload.
+3. **Result (`/result`)** — Call `consultApi`. If the agent requests payment, create an x402 EXACT invoice, ensure the wallet is on Base (or Base Sepolia), sign the payment, then resubmit with the encoded header. Successful responses are saved locally and rendered with sharing options.
+4. **Share (`/share`)** — Handles Twitterbot requests by emitting OG/Twitter card tags that point at the uploaded image so social platforms display the actual answer card preview.
 
-- `prisma/schema.prisma`：答案与星象提示的数据库结构
-- `prisma/seed.ts`：初始答案库与星象提示 seed 脚本
-- `src/lib/astro.ts`：太阳星座计算逻辑（MVP）
-- `src/lib/selection.ts`：带权重的随机选择工具
-- `src/app/api/answer/route.ts`：付费的 `/api/answer` 接口业务逻辑
-- `middleware.ts`：x402 v2 支付中间件，拦截 `/api/answer`
+## Getting Started
 
----
+### Prerequisites
 
-## 环境变量
+- [Bun](https://bun.sh/) ≥ v1.1 (used for both workspaces)
+- Node.js ≥ 18 (needed for some Next.js tooling)
+- A Base-compatible wallet + WalletConnect Project ID for full payment testing
 
-在根目录创建 `.env.local`：
-
-```env
-# x402 支付配置
-X402_FACILITATOR_URL=   # 由 x402 提供的 facilitator URL
-PAY_TO_ADDRESS=0x...    # 接收付款的钱包地址（Base 网络）
-CHAIN_ID=base           # 使用 Base 主网 / 测试网时按官方要求填写
-TOKEN_ADDRESS=0x...     # Base 上 USDC 合约地址
-PRICE=0.5               # 单次提问价格（单位：USDC）
-```
-
-如果以上变量未全部配置，`middleware.ts` 会直接放行请求（不做收费），方便本地开发调试。
-
----
-
-## 数据库与 Seed
-
-### 1. 生成 Prisma Client
+### 1. Install dependencies
 
 ```bash
-npm run prisma:generate
+bun install
+cd agent-backend && bun install && cd ..
 ```
 
-### 2. 运行迁移（SQLite）
+### 2. Configure environment
+
+Copy the example env files and fill in the required values:
 
 ```bash
-npm run prisma:migrate
+cp src/.env.example .env.local
+cp agent-backend/.env.example agent-backend/.env
 ```
 
-### 3. 导入初始答案与 astro hints
+`NEXT_PUBLIC_API_URL` should point to the agent backend (e.g. `http://localhost:3001`).
+The agent env includes OpenAI keys, Agent identifiers, `FACILITATOR_URL`, `NETWORK`, `PAYMENTS_RECEIVABLE_ADDRESS`, and ERC-8004 identity params (`AGENT_DOMAIN`, `CHAIN_ID`, `REGISTER_IDENTITY`, etc.).
+
+### 3. Run the services locally
 
 ```bash
-npm run prisma:seed
+# Terminal 1 – Next.js client
+bun run dev
+
+# Terminal 2 – Bun agent (from agent-backend/)
+cd agent-backend
+bun run dev
 ```
 
-`prisma/seed.ts` 会：
+Navigate to http://localhost:3000, connect a Base Sepolia wallet, and walk through the ritual.
 
-- 为 `answers` 表写入不同分类、不同语气、带权重的中文一句话回答
-- 为 `astro_hints` 表写入 12 星座 × 多类别 × 多条提示
-
----
-
-## 付费接口：`POST /api/answer`
-
-- 请求体：
-
-```json
-{
-  "profile": {
-    "name": "你的名字",
-    "birthDate": "1995-08-01",
-    "birthTime": "12:00",
-    "gender": "F",
-    "birthPlace": "Shanghai, China"
-  },
-  "question": "我接下来半年的事业重点是什么？",
-  "category": "career"
-}
-```
-
-- 行为概览：
-  - `middleware.ts` 使用 `x402-next` 的 `paymentMiddleware` 对 `/api/answer` 做 402 支付保护
-  - 未支付时返回 **HTTP 402**，携带 x402 所需的支付信息
-  - 支付完成并带上支付凭证后，请求才会被转发到 `route.ts`
-  - `route.ts` 会：
-    - 通过生日计算太阳星座
-    - 基于分类与 24 小时内的会话历史，从 `answers` 做带权重随机选择，避免重复
-    - 从 `astro_hints` 为对应星座与分类挑选一条轻量提示
-    - 仅持久化：
-      - `sessionId`（cookie）
-      - 太阳星座
-      - 答案历史（用于 24 小时去重）
-
-返回示例：
-
-```json
-{
-  "answer": "在事业上，一点点稳步前进，会带来意想不到的转机。放轻一点期待，让一切自然展开。（career·gentle·1）",
-  "astroHint": "在事业上，你的独特节奏比外界的催促更值得相信。作为Leo，你最近的直觉特别值得信赖。",
-  "cost": "0.5",
-  "txRef": "0x...",
-  "sunSign": "Leo",
-  "disclaimer": "仅供自我反思与娱乐使用，不构成任何专业建议。"
-}
-```
-
----
-
-## 开发与测试
-
-### 启动开发服务器
+### 4. Testing & linting
 
 ```bash
-npm install
-npm run dev
+bun run lint
+bun run test          # Vitest suites
+bun run test -- --coverage
 ```
 
-### 运行单元测试（Vitest）
+## Deploying
 
-```bash
-npm test
-```
-
-目前包含的最小测试：
-
-- `src/lib/astro.test.ts`：太阳星座计算
-- `src/lib/selection.test.ts`：带权重随机选择的基本行为
-
+- **Frontend:** `bun run build` emits the Next.js bundle that can be deployed to Vercel or any Node host (`bun run start` to preview). Set `NEXT_PUBLIC_API_URL` to the deployed agent URL.
+- **Agent backend:** `bun run build` compiles the Bun worker; host it on Bun-compatible infra, expose HTTPS, and make sure the ERC-8004 identity variables point to your registered Agent ID on Base mainnet.
+- **x402 integration:** Keep `FACILITATOR_URL`, `NETWORK`, `PAYMENTS_RECEIVABLE_ADDRESS`, and `PRIVATE_KEY` synchronized between staging and production so EXACT invoices resolve correctly; we default to the Awe World Fun facilitator endpoint (update `FACILITATOR_URL` if you self-host). When `X-PAYMENT` headers are missing or invalid the agent responds with `accepts: [...]`, giving the client everything it needs to re-initiate payment.
+- **Base mainnet rollout:** As soon as Base mainnet finalizes ERC-8004 identity support we will register the Answer Book agent on the mainnet registry and point the production frontend at that deployment so users can pay with real USDC.
