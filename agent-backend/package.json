@@ -10,11 +10,11 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@lucid-agents/core": "latest",
-    "@lucid-agents/identity": "latest",
-    "@aweto-agent/hono": "latest",
-    "@lucid-agents/http": "latest",
-    "@lucid-agents/payments": "latest",
+    "@aweto-agent/core": "^1.7.9",
+    "@aweto-agent/hono": "^0.6.2",
+    "@aweto-agent/payments": "^1.7.9",
+    "@aweto-agent/identity": "^1.7.9",
+    "openai": "^4.103.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

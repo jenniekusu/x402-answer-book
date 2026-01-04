@@ -1,16 +1,16 @@
 import { z } from "zod";
 
 // ============================================================================
-// Variable Types
+// Variable Types - Variable Type Definitions
 // ============================================================================
 
 /**
  * Supported variable types
- * - text: single-line text
- * - number: numeric value
- * - select: pick from predefined options
- * - multiline: multi-line text area
- * - json: JSON object payload
+ * - text: Single-line text
+ * - number: Number
+ * - select: Single selection (choose from predefined options)
+ * - multiline: Multi-line text
+ * - json: JSON object
  */
 export const VariableTypeSchema = z.enum([
   "text",
@@ -23,63 +23,65 @@ export const VariableTypeSchema = z.enum([
 export type VariableType = z.infer<typeof VariableTypeSchema>;
 
 // ============================================================================
-// Variable Definition
+// Variable - Variable Definition
 // ============================================================================
 
 /**
- * Schema for variables used inside templates
+ * Variable definition Schema
+ * Used to define placeholder variables in templates
  */
 export const VariableSchema = z.object({
-  /** Variable name, reflected as {{name}} in templates */
-  name: z.string().min(1, "Name is required"),
+  /** Variable name, used for placeholders {{name}} in templates */
+  name: z.string().min(1, "Variable name cannot be empty"),
   /** Variable type */
   type: VariableTypeSchema,
   /** Default value */
   defaultValue: z.union([z.string(), z.number()]).optional(),
-  /** Description, helpful for UI hints */
+  /** Variable description, used for UI hints */
   description: z.string().optional(),
-  /** Whether this variable is required */
+  /** Whether required */
   required: z.boolean().default(true),
-  /** Options for select-type variables */
+  /** Options list for select type */
   options: z.array(z.string()).optional(),
 });
 
 export type Variable = z.infer<typeof VariableSchema>;
 
 // ============================================================================
-// Prompt Templates
+// PromptTemplate - Prompt Template
 // ============================================================================
 
 /**
- * Schema describing a complete prompt template plus its metadata
+ * Prompt template Schema
+ * Complete template definition, including content and variables
  */
 export const PromptTemplateSchema = z.object({
   /** Unique identifier */
-  id: z.string().min(1, "Template ID is required"),
+  id: z.string().min(1, "Template ID cannot be empty"),
   /** Template name */
-  name: z.string().min(1, "Template name is required"),
+  name: z.string().min(1, "Template name cannot be empty"),
   /** Template description */
   description: z.string().optional(),
-  /** Template body containing {{variable}} placeholders */
-  content: z.string().min(1, "Template content is required"),
-  /** List of variable definitions */
+  /** Template content, containing {{variable}} placeholders */
+  content: z.string().min(1, "Template content cannot be empty"),
+  /** Variable definition list */
   variables: z.array(VariableSchema).default([]),
   /** Tags for categorization and search */
   tags: z.array(z.string()).default([]),
   /** Current version number */
   version: z.number().int().positive().default(1),
-  /** Created timestamp */
+  /** Creation time */
   createdAt: z.string().datetime(),
-  /** Updated timestamp */
+  /** Update time */
   updatedAt: z.string().datetime(),
-  /** Soft-delete flag */
+  /** Whether deleted (soft delete) */
   deleted: z.boolean().default(false),
 });
 
 export type PromptTemplate = z.infer<typeof PromptTemplateSchema>;
 
 /**
- * Input schema for creating a template (omits auto-generated fields)
+ * Input Schema for creating templates (excludes auto-generated fields like id, timestamps, etc.)
  */
 export const CreateTemplateInputSchema = PromptTemplateSchema.omit({
   id: true,
@@ -92,18 +94,19 @@ export const CreateTemplateInputSchema = PromptTemplateSchema.omit({
 export type CreateTemplateInput = z.infer<typeof CreateTemplateInputSchema>;
 
 /**
- * Input schema for updating a template (all fields optional)
+ * Input Schema for updating templates (all fields optional)
  */
 export const UpdateTemplateInputSchema = CreateTemplateInputSchema.partial();
 
 export type UpdateTemplateInput = z.infer<typeof UpdateTemplateInputSchema>;
 
 // ============================================================================
-// Template Versions
+// TemplateVersion - Version History
 // ============================================================================
 
 /**
- * Schema representing a historical version of a template
+ * Template version record Schema
+ * Used to track template version history
  */
 export const TemplateVersionSchema = z.object({
   /** Associated template ID */
@@ -112,22 +115,23 @@ export const TemplateVersionSchema = z.object({
   version: z.number().int().positive(),
   /** Template content for this version */
   content: z.string(),
-  /** Variable definitions used by this version */
+  /** Variable definitions for this version */
   variables: z.array(VariableSchema).default([]),
-  /** Changelog / description of changes */
+  /** Changelog description */
   changelog: z.string().optional(),
-  /** Creation timestamp */
+  /** Creation time */
   createdAt: z.string().datetime(),
 });
 
 export type TemplateVersion = z.infer<typeof TemplateVersionSchema>;
 
 // ============================================================================
-// Evaluation Results
+// EvaluationResult - Evaluation Result
 // ============================================================================
 
 /**
- * Schema describing the outcome of evaluating a template
+ * Evaluation result Schema
+ * Records effectiveness evaluation after template usage
  */
 export const EvaluationResultSchema = z.object({
   /** Unique identifier */
@@ -136,19 +140,19 @@ export const EvaluationResultSchema = z.object({
   templateId: z.string().min(1),
   /** Template version used */
   templateVersion: z.number().int().positive(),
-  /** Variable inputs that were rendered */
+  /** Input variable values */
   input: z.record(z.string(), z.unknown()),
-  /** Fully rendered prompt */
+  /** Rendered complete prompt */
   renderedPrompt: z.string(),
-  /** LLM response */
+  /** LLM output result */
   output: z.string(),
   /** Score (1-5) */
   score: z.number().int().min(1).max(5),
-  /** Written feedback */
+  /** Text feedback */
   feedback: z.string().optional(),
   /** Evaluation timestamp */
   timestamp: z.string().datetime(),
-  /** LLM model identifier */
+  /** LLM model used */
   model: z.string().optional(),
   /** Token usage */
   tokenUsage: z
@@ -163,7 +167,7 @@ export const EvaluationResultSchema = z.object({
 export type EvaluationResult = z.infer<typeof EvaluationResultSchema>;
 
 /**
- * Input schema for creating evaluation results
+ * Input Schema for creating evaluation results
  */
 export const CreateEvaluationInputSchema = EvaluationResultSchema.omit({
   id: true,
@@ -173,11 +177,12 @@ export const CreateEvaluationInputSchema = EvaluationResultSchema.omit({
 export type CreateEvaluationInput = z.infer<typeof CreateEvaluationInputSchema>;
 
 // ============================================================================
-// Template Index
+// TemplateIndex - Template Index
 // ============================================================================
 
 /**
- * Schema for lightweight template index entries
+ * Template index item Schema
+ * Used for quick template retrieval, does not include full content
  */
 export const TemplateIndexItemSchema = z.object({
   /** Template ID */
@@ -190,34 +195,34 @@ export const TemplateIndexItemSchema = z.object({
   tags: z.array(z.string()),
   /** Current version */
   version: z.number(),
-  /** Last update timestamp */
+  /** Update time */
   updatedAt: z.string(),
-  /** Soft-delete flag */
+  /** Whether deleted */
   deleted: z.boolean(),
 });
 
 export type TemplateIndexItem = z.infer<typeof TemplateIndexItemSchema>;
 
 /**
- * Schema for the template index file
+ * Template index file Schema
  */
 export const TemplateIndexSchema = z.object({
   /** Index version */
   version: z.number().default(1),
-  /** Last updated timestamp */
+  /** Last update time */
   lastUpdated: z.string().datetime(),
-  /** Templates included in the index */
+  /** Template list */
   templates: z.array(TemplateIndexItemSchema),
 });
 
 export type TemplateIndex = z.infer<typeof TemplateIndexSchema>;
 
 // ============================================================================
-// Render Context
+// Render Context - Rendering Context
 // ============================================================================
 
 /**
- * Mapping of variable names to concrete values
+ * Variable value mapping
  */
 export type VariableValues = Record<string, string | number | unknown>;
 
@@ -225,34 +230,34 @@ export type VariableValues = Record<string, string | number | unknown>;
  * Rendering options
  */
 export interface RenderOptions {
-  /** When true, missing required variables throw an error */
+  /** Whether strict mode (throws error when required variables are not provided) */
   strict?: boolean;
-  /** Default fallback when a variable is missing */
+  /** Default value when variable is not found */
   fallbackValue?: string;
 }
 
 /**
- * Result of rendering a template
+ * Rendering result
  */
 export interface RenderResult {
   /** Rendered content */
   content: string;
-  /** Variables that were supplied */
+  /** Variables used */
   usedVariables: string[];
-  /** Variables that were missing */
+  /** Missing variables */
   missingVariables: string[];
-  /** Whether rendering succeeded */
+  /** Whether successful */
   success: boolean;
-  /** Error message when unsuccessful */
+  /** Error message */
   error?: string;
 }
 
 // ============================================================================
-// API Response Types
+// API Response Types - API Response Types
 // ============================================================================
 
 /**
- * Response payload returned by a template list call
+ * Template list response
  */
 export const TemplateListResponseSchema = z.object({
   templates: z.array(TemplateIndexItemSchema),
@@ -262,7 +267,7 @@ export const TemplateListResponseSchema = z.object({
 export type TemplateListResponse = z.infer<typeof TemplateListResponseSchema>;
 
 /**
- * Template render request shape
+ * Template render request
  */
 export const RenderRequestSchema = z.object({
   templateId: z.string(),
@@ -278,7 +283,7 @@ export const RenderRequestSchema = z.object({
 export type RenderRequest = z.infer<typeof RenderRequestSchema>;
 
 /**
- * Template render response shape
+ * Template render response
  */
 export const RenderResponseSchema = z.object({
   content: z.string(),
