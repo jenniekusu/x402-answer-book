@@ -1,0 +1,638 @@
+{
+    "name": "answerbook",
+    "description": "A mystical AI oracle book that provides philosophical answers to your questions",
+    "url": "http://api.answerbook.app/",
+    "version": "0.0.1",
+    "capabilities": {
+        "streaming": true,
+        "pushNotifications": false,
+        "stateTransitionHistory": true,
+        "extensions": [
+            {
+                "uri": "https://github.com/google-agentic-commerce/ap2/tree/v0.1",
+                "description": "Agent Payments Protocol (AP2)",
+                "required": true,
+                "params": {
+                    "roles": [
+                        "merchant"
+                    ]
+                }
+            }
+        ]
+    },
+    "defaultInputModes": [
+        "application/json"
+    ],
+    "defaultOutputModes": [
+        "application/json",
+        "text/plain"
+    ],
+    "skills": [
+        {
+            "id": "consult",
+            "name": "consult",
+            "description": "Receive mystical divination based on your astrological profile",
+            "inputModes": [
+                "application/json"
+            ],
+            "outputModes": [
+                "application/json",
+                "text/plain"
+            ],
+            "streaming": false,
+            "x_input_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "profile": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "birthDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                            },
+                            "birthTime": {
+                                "type": "string"
+                            },
+                            "gender": {
+                                "type": "string",
+                                "enum": [
+                                    "M",
+                                    "F"
+                                ]
+                            },
+                            "birthPlace": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "birthDate"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "question": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": [
+                            "love",
+                            "career",
+                            "health",
+                            "wealth",
+                            "general"
+                        ]
+                    }
+                },
+                "required": [
+                    "profile",
+                    "question"
+                ],
+                "additionalProperties": false
+            },
+            "x_output_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string"
+                    },
+                    "astroHint": {
+                        "type": "string"
+                    },
+                    "cost": {
+                        "type": "string"
+                    },
+                    "txRef": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "sunSign": {
+                        "type": "string"
+                    },
+                    "disclaimer": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "answer",
+                    "astroHint",
+                    "cost",
+                    "txRef",
+                    "sunSign",
+                    "disclaimer"
+                ],
+                "additionalProperties": false
+            }
+        },
+        {
+            "id": "consult-stream",
+            "name": "consult-stream",
+            "description": "Streaming divination consultation, ideal for chatbot scenarios",
+            "inputModes": [
+                "application/json"
+            ],
+            "outputModes": [
+                "application/json",
+                "text/plain"
+            ],
+            "streaming": true,
+            "x_input_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "profile": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "birthDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                            },
+                            "birthTime": {
+                                "type": "string"
+                            },
+                            "gender": {
+                                "type": "string",
+                                "enum": [
+                                    "M",
+                                    "F"
+                                ]
+                            },
+                            "birthPlace": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "birthDate"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "question": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": [
+                            "love",
+                            "career",
+                            "health",
+                            "wealth",
+                            "general"
+                        ]
+                    }
+                },
+                "required": [
+                    "profile",
+                    "question"
+                ],
+                "additionalProperties": false
+            },
+            "x_output_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string"
+                    },
+                    "astroHint": {
+                        "type": "string"
+                    },
+                    "cost": {
+                        "type": "string"
+                    },
+                    "txRef": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "sunSign": {
+                        "type": "string"
+                    },
+                    "disclaimer": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "answer",
+                    "astroHint",
+                    "cost",
+                    "txRef",
+                    "sunSign",
+                    "disclaimer"
+                ],
+                "additionalProperties": false
+            }
+        },
+        {
+            "id": "ask",
+            "name": "ask",
+            "description": "Ask the Book of Answers and receive a mystical response",
+            "inputModes": [
+                "application/json"
+            ],
+            "outputModes": [
+                "application/json",
+                "text/plain"
+            ],
+            "streaming": false,
+            "x_input_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "question": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "question"
+                ],
+                "additionalProperties": false
+            },
+            "x_output_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string",
+                        "enum": [
+                            "ai",
+                            "mystical"
+                        ]
+                    }
+                },
+                "required": [
+                    "answer"
+                ],
+                "additionalProperties": false
+            }
+        },
+        {
+            "id": "ask-stream",
+            "name": "ask-stream",
+            "description": "Ask the Book of Answers and receive a streaming mystical response",
+            "inputModes": [
+                "application/json"
+            ],
+            "outputModes": [
+                "application/json",
+                "text/plain"
+            ],
+            "streaming": true,
+            "x_input_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "question": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "question"
+                ],
+                "additionalProperties": false
+            },
+            "x_output_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string",
+                        "enum": [
+                            "ai",
+                            "mystical"
+                        ]
+                    }
+                },
+                "required": [
+                    "answer"
+                ],
+                "additionalProperties": false
+            }
+        }
+    ],
+    "supportsAuthenticatedExtendedCard": false,
+    "entrypoints": {
+        "consult": {
+            "description": "Receive mystical divination based on your astrological profile",
+            "streaming": false,
+            "input_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "profile": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "birthDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                            },
+                            "birthTime": {
+                                "type": "string"
+                            },
+                            "gender": {
+                                "type": "string",
+                                "enum": [
+                                    "M",
+                                    "F"
+                                ]
+                            },
+                            "birthPlace": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "birthDate"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "question": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": [
+                            "love",
+                            "career",
+                            "health",
+                            "wealth",
+                            "general"
+                        ]
+                    }
+                },
+                "required": [
+                    "profile",
+                    "question"
+                ],
+                "additionalProperties": false
+            },
+            "output_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string"
+                    },
+                    "astroHint": {
+                        "type": "string"
+                    },
+                    "cost": {
+                        "type": "string"
+                    },
+                    "txRef": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "sunSign": {
+                        "type": "string"
+                    },
+                    "disclaimer": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "answer",
+                    "astroHint",
+                    "cost",
+                    "txRef",
+                    "sunSign",
+                    "disclaimer"
+                ],
+                "additionalProperties": false
+            },
+            "pricing": {
+                "invoke": "0.0001"
+            }
+        },
+        "consult-stream": {
+            "description": "Streaming divination consultation, ideal for chatbot scenarios",
+            "streaming": true,
+            "input_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "profile": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "birthDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                            },
+                            "birthTime": {
+                                "type": "string"
+                            },
+                            "gender": {
+                                "type": "string",
+                                "enum": [
+                                    "M",
+                                    "F"
+                                ]
+                            },
+                            "birthPlace": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "birthDate"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "question": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": [
+                            "love",
+                            "career",
+                            "health",
+                            "wealth",
+                            "general"
+                        ]
+                    }
+                },
+                "required": [
+                    "profile",
+                    "question"
+                ],
+                "additionalProperties": false
+            },
+            "output_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string"
+                    },
+                    "astroHint": {
+                        "type": "string"
+                    },
+                    "cost": {
+                        "type": "string"
+                    },
+                    "txRef": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "sunSign": {
+                        "type": "string"
+                    },
+                    "disclaimer": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "answer",
+                    "astroHint",
+                    "cost",
+                    "txRef",
+                    "sunSign",
+                    "disclaimer"
+                ],
+                "additionalProperties": false
+            },
+            "pricing": {
+                "invoke": "0.0001",
+                "stream": "0.0001"
+            }
+        },
+        "ask": {
+            "description": "Ask the Book of Answers and receive a mystical response",
+            "streaming": false,
+            "input_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "question": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "question"
+                ],
+                "additionalProperties": false
+            },
+            "output_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string",
+                        "enum": [
+                            "ai",
+                            "mystical"
+                        ]
+                    }
+                },
+                "required": [
+                    "answer"
+                ],
+                "additionalProperties": false
+            },
+            "pricing": {
+                "invoke": "0.0001"
+            }
+        },
+        "ask-stream": {
+            "description": "Ask the Book of Answers and receive a streaming mystical response",
+            "streaming": true,
+            "input_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "question": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "question"
+                ],
+                "additionalProperties": false
+            },
+            "output_schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string",
+                        "enum": [
+                            "ai",
+                            "mystical"
+                        ]
+                    }
+                },
+                "required": [
+                    "answer"
+                ],
+                "additionalProperties": false
+            }
+        }
+    },
+    "payments": [
+        {
+            "method": "x402",
+            "payee": "0x3205765176A38D82FD61fE0b2E0b1D2c7A76B00b",
+            "network": "base-sepolia",
+            "endpoint": "https://facilitator.world.fun/",
+            "extensions": {
+                "x402": {
+                    "facilitatorUrl": "https://facilitator.world.fun/"
+                }
+            }
+        }
+    ]
+}
